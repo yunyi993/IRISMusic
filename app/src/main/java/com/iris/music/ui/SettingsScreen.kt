@@ -120,6 +120,8 @@ internal fun SettingsPanel(
 ) {
     val scrollState = rememberScrollState()
     val panelContext = LocalContext.current
+        var showSourceImport by remember { mutableStateOf(false) }
+    var showPlaylistImport by remember { mutableStateOf(false) }
     // 「指定文件夹」：SAF 目录树选择器。开启后曲库只收录所选文件夹之内的歌曲。
     var scanRootStatus by remember { mutableStateOf("") }
     val folderPickerLauncher = rememberLauncherForActivityResult(
@@ -905,6 +907,51 @@ internal fun SettingsPanel(
 
         } // 结束数据
 
+        // ==================== 音源与歌单 ====================
+        CollapsibleSection("音源与歌单", colors) {
+
+        Text("网络音源", color = headerColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "导入 QingMusic 格式的音源配置（.json），导入后可在搜索中使用在线音乐源。",
+            color = colors.subText, fontSize = 11.sp, lineHeight = 16.sp
+        )
+        Spacer(Modifier.height(8.dp))
+        Box(
+            Modifier
+                .fillMaxWidth().height(40.dp)
+                .clip(IrisShape.item)
+                .background(colors.primary.copy(alpha = 0.18f))
+                .clickable { Haptics.tap(); showSourceImport = true },
+            contentAlignment = Alignment.Center
+        ) {
+            Text("导入音源", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.primary)
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Text("歌单导入", color = headerColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "支持汽水音乐分享链接，粘贴后自动解析曲目并存入本地歌单目录。",
+            color = colors.subText, fontSize = 11.sp, lineHeight = 16.sp
+        )
+        Spacer(Modifier.height(8.dp))
+        Box(
+            Modifier
+                .fillMaxWidth().height(40.dp)
+                .clip(IrisShape.item)
+                .background(colors.primary.copy(alpha = 0.18f))
+                .clickable { Haptics.tap(); showPlaylistImport = true },
+            contentAlignment = Alignment.Center
+        ) {
+            Text("导入歌单", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.primary)
+        }
+
+        Spacer(Modifier.height(18.dp))
+
+        } // 结束音源与歌单
+        
         // ==================== 关于 ====================
         CollapsibleSection("关于", colors) {
 
@@ -949,7 +996,34 @@ internal fun SettingsPanel(
             Text("完成", color = colors.primary.readableTextOn(),
                 fontSize = 15.sp, fontWeight = FontWeight.Black)
         }
+                if (showSourceImport) {
+            SourceImportSheet(
+                colors = colors,
+                onDismiss = { showSourceImport = false },
+                onImported = { count, names ->
+                    Toast.makeText(panelContext, "已导入 $count 个音源：$names", Toast.LENGTH_LONG).show()
+                },
+                onImport = { input ->
+                    if (input.startsWith("http")) SourceImport.fromUrl(panelContext, input)
+                    else SourceImport.fromText(panelContext, input)
+                }
+            )
+        }
+        if (showPlaylistImport) {
+            PlaylistImportSheet(
+                colors = colors,
+                onDismiss = { showPlaylistImport = false },
+                onImported = { playlist ->
+                    Toast.makeText(
+                        panelContext,
+                        "已导入「${playlist.title}」共 ${playlist.songs.size} 首",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            )
+        }
         Spacer(Modifier.height(18.dp))
+        
     }
 }
 
