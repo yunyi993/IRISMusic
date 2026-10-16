@@ -6,7 +6,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,7 +58,7 @@ fun SourceImportSheet(
 
             message?.let {
                 Spacer(Modifier.height(8.dp))
-                Text(it, color = if (isError) colors.error else colors.primary, fontSize = 12.sp)
+                Text(it, color = if (isError) colors.subText else colors.primary, fontSize = 12.sp)
             }
 
             Spacer(Modifier.height(16.dp))
