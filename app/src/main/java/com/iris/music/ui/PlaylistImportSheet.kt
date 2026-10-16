@@ -60,7 +60,7 @@ fun PlaylistImportSheet(
 
             message?.let {
                 Spacer(Modifier.height(8.dp))
-                Text(it, color = if (isError) colors.error else colors.primary, fontSize = 12.sp)
+                Text(it, color = if (isError) colors.subText else colors.primary, fontSize = 12.sp)
             }
 
             Spacer(Modifier.height(16.dp))
