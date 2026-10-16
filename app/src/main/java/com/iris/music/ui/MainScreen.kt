@@ -110,6 +110,9 @@ import com.iris.music.data.Song
 import com.iris.music.data.SortDirection
 import com.iris.music.data.SortOrder
 import com.iris.music.data.formatLabel
+import com.iris.music.data.ParsedPlaylist
+import com.iris.music.data.QishuiApi
+import com.iris.music.data.PlaylistSong
 import com.iris.music.player.PlayerUiState
 import com.iris.music.player.PlayerViewModel
 import com.iris.music.ui.theme.*
@@ -194,6 +197,8 @@ androidx.compose.runtime.LaunchedEffect(state.jellyAnim) {
 
     // 歌单管理弹层
     var showPlaylists by remember { mutableStateOf(false) }
+    // 在线歌单详情弹层
+    var onlinePlaylist by remember { mutableStateOf<ParsedPlaylist?>(null) }
 
     // 长按歌曲 → 待加入歌单的歌曲
     var pendingAddSong by remember { mutableStateOf<Song?>(null) }
@@ -441,8 +446,28 @@ visible = scrollerVisible,
                     onSelect = { viewModel.selectPlaylist(it) },
                     onCreate = { name -> viewModel.createPlaylist(name) },
                     onRename = { id, name -> viewModel.renamePlaylist(id, name) },
-                    onDelete = { viewModel.deletePlaylist(it) }
+                    onDelete = { viewModel.deletePlaylist(it) },
+                    onOpenOnlinePlaylist = { pl -> onlinePlaylist = pl }
                 )
+            }
+
+            // 在线歌单详情弹层
+            AnimatedVisibility(
+                visible = onlinePlaylist != null,
+                enter = if (IrisMotion.jelly) {
+                    fadeIn(IrisMotion.appear()) + scaleIn(initialScale = 0.96f, animationSpec = IrisMotion.appear())
+                } else fadeIn(tween(200)),
+                exit = fadeOut(tween(180))
+            ) {
+                val pl = onlinePlaylist
+                if (pl != null) {
+                    OnlinePlaylistDetailSheet(
+                        playlist = pl,
+                        colors = colors,
+                        onDismiss = { onlinePlaylist = null },
+                        onPlay = { song -> viewModel.playSong(song) }
+                    )
+                }
             }
 
             // 添加到歌单弹层（长按歌曲触发）
@@ -2215,5 +2240,3 @@ internal fun FolderRow(name: String, count: String, active: Boolean, colors: Iri
         Text(count, color = colors.subText, fontSize = 11.sp)
     }
 }
-
-
