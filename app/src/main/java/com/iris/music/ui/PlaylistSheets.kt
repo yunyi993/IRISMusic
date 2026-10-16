@@ -82,6 +82,8 @@ import com.iris.music.data.RepeatMode
 import com.iris.music.data.Playlist
 import com.iris.music.data.Playlists
 import com.iris.music.data.Song
+import com.iris.music.data.ParsedPlaylist
+import com.iris.music.data.PlaylistImporter
 import com.iris.music.data.formatLabel
 import com.iris.music.player.PlayerUiState
 import com.iris.music.player.PlayerViewModel
@@ -111,8 +113,10 @@ internal fun PlaylistSheet(
     onSelect: (Long?) -> Unit,
     onCreate: (String) -> Unit,
     onRename: (Long, String) -> Unit,
-    onDelete: (Long) -> Unit
+    onDelete: (Long) -> Unit,
+    onOpenOnlinePlaylist: (ParsedPlaylist) -> Unit
 ) {
+  val context = androidx.compose.ui.platform.LocalContext.current
     val accent = colors.primary.readableOn(colors.surface, 3.2f)
     val onSheet = if (colors.isDark) Color.White else Color.Black
 
@@ -123,6 +127,9 @@ internal fun PlaylistSheet(
     // 待删除的歌单（二次确认用）
     var pendingDelete by remember { mutableStateOf<Playlist?>(null) }
 
+    // 已导入的在线歌单（汽水）
+    val onlinePlaylists = remember(state) { PlaylistImporter.loadAll(context) }
+    
     // 拖把手下滑关闭
     val drag = rememberSheetDragState()
 
@@ -188,6 +195,30 @@ internal fun PlaylistSheet(
 
                     // 新建歌单
                     if (showCreate) {
+                                            // ==================== 在线歌单 ====================
+                    if (onlinePlaylists.isNotEmpty()) {
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            "在线歌单",
+                            color = colors.subText,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        onlinePlaylists.forEach { pl ->
+                            OnlinePlaylistRow(
+                                playlist = pl,
+                                colors = colors,
+                                onClick = {
+                                    onDismiss()
+                                    onOpenOnlinePlaylist(pl)
+                                }
+                            )
+                            Spacer(Modifier.height(4.dp))
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
                         Row(
                             Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -532,5 +563,51 @@ internal fun AddToPlaylistSheet(
                             Text("＋ 新建歌单并加入", color = accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         }
                     }
+    }
+}
+
+/** 在线歌单行（汽水导入） */
+@Composable
+private fun OnlinePlaylistRow(
+    playlist: ParsedPlaylist,
+    colors: IrisColors,
+    onClick: () -> Unit
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .irisSurface(
+                level = GlassLevel.ROW,
+                colors = colors,
+                shape = IrisShape.item,
+                accent = colors.primary
+            )
+            .clickable { Haptics.tap(); onClick() }
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            Modifier
+                .size(18.dp)
+                .clip(IrisShape.chip)
+                .background(colors.primary)
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                playlist.title,
+                color = colors.text,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                "汽水音乐",
+                color = colors.subText,
+                fontSize = 10.sp
+            )
+        }
+        Text("${playlist.songs.size} 首", color = colors.subText, fontSize = 11.sp)
     }
 }
