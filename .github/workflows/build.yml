@@ -18,13 +18,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle 8.7
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.7'
+      - name: Install Gradle 8.7
+        run: |
+          cd $HOME
+          wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q gradle-8.7-bin.zip -d $HOME
+          echo "$HOME/gradle-8.7/bin" >> $GITHUB_PATH
 
-      - name: Show wrapper properties
-        run: cat gradle/wrapper/gradle-wrapper.properties
+      - name: Verify Gradle
+        run: gradle --version
 
       - name: Build Debug APK
         run: gradle assembleDebug --stacktrace --no-daemon
