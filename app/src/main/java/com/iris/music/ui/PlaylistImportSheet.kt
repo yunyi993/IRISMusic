@@ -18,7 +18,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun PlaylistImportSheet(
     onDismiss: () -> Unit,
-    colors: IrisColors,
     onImported: (ParsedPlaylist) -> Unit
 ) {
     val context = LocalContext.current
@@ -26,11 +25,9 @@ fun PlaylistImportSheet(
     var input by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
-    var isError by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = colors.surface,
         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) {
         Column(
@@ -40,14 +37,12 @@ fun PlaylistImportSheet(
         ) {
             Text(
                 "导入歌单",
-                color = colors.text,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 "粘贴汽水音乐分享链接",
-                color = colors.subText,
                 fontSize = 12.sp
             )
             Spacer(Modifier.height(14.dp))
@@ -56,28 +51,13 @@ fun PlaylistImportSheet(
                 value = input,
                 onValueChange = { input = it; message = null },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = {
-                    Text(
-                        "https://qishui.douyin.com/s/...",
-                        color = colors.subText
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = colors.text,
-                    unfocusedTextColor = colors.text,
-                    focusedBorderColor = colors.primary,
-                    unfocusedBorderColor = colors.subText.copy(alpha = 0.3f)
-                ),
+                placeholder = { Text("https://qishui.douyin.com/s/...") },
                 maxLines = 4
             )
 
             message?.let {
                 Spacer(Modifier.height(8.dp))
-                Text(
-                    it,
-                    color = if (isError) colors.error else colors.primary,
-                    fontSize = 12.sp
-                )
+                Text(it, fontSize = 12.sp)
             }
 
             Spacer(Modifier.height(16.dp))
@@ -86,7 +66,6 @@ fun PlaylistImportSheet(
                 onClick = {
                     if (input.isBlank()) {
                         message = "请粘贴链接"
-                        isError = true
                         return@Button
                     }
                     loading = true
@@ -101,37 +80,27 @@ fun PlaylistImportSheet(
                             },
                             onFailure = { e ->
                                 message = e.message ?: "解析失败"
-                                isError = true
                             }
                         )
                     }
                 },
                 enabled = !loading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 if (loading) {
                     CircularProgressIndicator(
-                        color = colors.surface,
                         strokeWidth = 2.dp,
                         modifier = Modifier.size(20.dp)
                     )
                 } else {
-                    Text(
-                        "解析并导入",
-                        color = colors.surface,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("解析并导入", fontWeight = FontWeight.Bold)
                 }
             }
 
             Spacer(Modifier.height(8.dp))
             Text(
                 "支持汽水音乐单曲 / 歌单分享链接",
-                color = colors.subText.copy(alpha = 0.5f),
                 fontSize = 11.sp,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
